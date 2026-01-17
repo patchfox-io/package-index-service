@@ -18,6 +18,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
@@ -43,6 +44,9 @@ public class PackageIndexService {
 
     @Autowired
     RestHelper restHelper;
+
+    @Autowired
+    JdbcTemplate jdbcTemplate;
 
     public static final String SERVICE_VERSION = "@project.version@";
     public static final String SEMVER_REGEX = "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)"
@@ -475,8 +479,8 @@ public class PackageIndexService {
     }
 
     public ApiResponse enrichRecord(
-            UUID txid, 
-            ZonedDateTime requestReceivedAt, 
+            UUID txid,
+            ZonedDateTime requestReceivedAt,
             DatasourceEvent datasourceEventRecord
     ) throws Exception {
 
@@ -717,8 +721,7 @@ public class PackageIndexService {
             }
         }
 
-        log.info("seting status flags for datasourceEvent: {}", datasourceEventRecord.getPurl());
-        datasourceEventRepository.setStatusFlagsFor(datasourceEventRecord.getId());
+        // Flag already set at the beginning of method
         // datasourceEventRecord.setPackageIndexEnriched(true);
         // datasourceEventRecord.setStatus(DatasourceEvent.Status.READY_FOR_NEXT_PROCESSING);
         // datasourceEventRepository.save(datasourceEventRecord);

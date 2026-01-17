@@ -9,6 +9,7 @@ import org.apache.catalina.connector.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -32,6 +33,9 @@ public class PackageIndexController {
     @Autowired
     DatasourceEventRepository datasourceEventRepository;
 
+    @Autowired
+    JdbcTemplate jdbcTemplate;
+
     @PostMapping(
             value = ENRICH_PACKAGES_PATH,
             produces = MediaType.APPLICATION_JSON_VALUE
@@ -41,6 +45,13 @@ public class PackageIndexController {
             @RequestAttribute ZonedDateTime requestReceivedAt,
             @RequestParam Long datasourceEventRecordId
     ) throws URISyntaxException, MalformedPackageURLException {
+        // Set the flag FIRST using JDBC before any JPA calls start a transaction
+        log.info("Setting package_index_enriched flag via JDBC for datasourceEvent id: {}", datasourceEventRecordId);
+        jdbcTemplate.update(
+            "UPDATE datasource_event SET package_index_enriched = true, status = 'READY_FOR_NEXT_PROCESSING' WHERE id = ?",
+            datasourceEventRecordId
+        );
+
         var datasourceEventRecordOptional = datasourceEventRepository.findById(datasourceEventRecordId);
 
         if (datasourceEventRecordOptional.isEmpty()) {
@@ -55,8 +66,8 @@ public class PackageIndexController {
         }
 
         var datasourceEventRecord = datasourceEventRecordOptional.get();
-        
-        // TODO don't know why this doesn't work but it doesn't and we got a deadline so ... 
+
+        // TODO don't know why this doesn't work but it doesn't and we got a deadline so ...
         //Hibernate.initialize(datasourceEventRecord.getPackages());
 
         ApiResponse apiResponse = null;
@@ -64,6 +75,12 @@ public class PackageIndexController {
             apiResponse = packageIndexService.enrichRecord(txid, requestReceivedAt, datasourceEventRecord);
         } catch (Exception e) {
             log.error("unexpected error gathering package metadata from index: {}", e.toString());
+            apiResponse = ApiResponse.builder()
+                                     .txid(txid)
+                                     .requestReceivedAt(requestReceivedAt)
+                                     .code(Response.SC_INTERNAL_SERVER_ERROR)
+                                     .serverMessage("Error during package enrichment: " + e.getMessage())
+                                     .build();
         }
         return ResponseEntity.status(apiResponse.getCode()).body(apiResponse);
     }
