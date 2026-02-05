@@ -12,7 +12,7 @@
 	
 	<groupId>io.patchfox.package-index-service</groupId>
 	<artifactId>package-index-service</artifactId>
-	<version>0.0.49</version>
+	<version>0.0.50</version>
 	<name>package-index-service</name>
 	<description>retrieves and caches package information from various package index services</description>
 	
@@ -118,7 +118,7 @@
 			<plugin>
 				<groupId>com.google.cloud.tools</groupId>
 				<artifactId>jib-maven-plugin</artifactId>
-				<version>3.4.6</version>
+				<version>3.5.1</version>
 				<configuration>
 					<from>
 						<image>eclipse-temurin:21-jre</image>
