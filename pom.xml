@@ -12,7 +12,7 @@
 	
 	<groupId>io.patchfox.package-index-service</groupId>
 	<artifactId>package-index-service</artifactId>
-	<version>0.0.50</version>
+	<version>0.0.51</version>
 	<name>package-index-service</name>
 	<description>retrieves and caches package information from various package index services</description>
 	
@@ -64,7 +64,7 @@
 		<dependency>
   			<groupId>io.patchfox.db-entities</groupId>
   			<artifactId>db-entities</artifactId>
-  			<version>1.0.33</version>
+  			<version>1.0.34</version>
 		</dependency>
 
 		<dependency>
